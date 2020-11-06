@@ -1,4 +1,4 @@
-#!/anaconda3/bin/python3
+#!/usr/bin/python
 
 import os, json
 from locate_file import locate_file
@@ -8,6 +8,7 @@ from locate_file import locate_file
 # Set paths and create some folders
 flywheel_base ='/flywheel/v0/'
 first_output_dir = '/firstOutput'
+first_output_for_tsv = '/firstOutputTsv'
 final_output_dir = os.path.join(flywheel_base, 'output')
 manifest_file = os.path.join(flywheel_base, 'manifest.json')
 config_path = os.path.join(flywheel_base, 'config.json')
@@ -34,22 +35,25 @@ if os.path.splitext(inputImageOrArchive)[1] == '.zip':
     unzipped_file_path = os.path.join('/opt', 'unzipped_files')
     os.system('mkdir %s' % unzipped_file_path)
     os.system('unzip -q %s -d %s' % (inputImageOrArchive, unzipped_file_path))
-    inputImages = locate_file(image_extention, unzipped_file_path)
 else:
     raise RuntimeError('Image input is not a zip.')
 
-################### Run Algorithm ################################
+inputImages = locate_file(image_extention, unzipped_file_path)
+
+################## Run Algorithm ################################
 
 for image in inputImages:
         noise_ics = image.replace('space-T1w_desc-preproc_bold.nii.gz', 'AROMAnoiseICs.csv')
         melodix_mix = image.replace('space-T1w_desc-preproc_bold.nii.gz', 'desc-MELODIC_mixing.tsv')
         confound_file = image.replace('space-T1w_desc-preproc_bold.nii.gz', 'desc-confounds_regressors.tsv')
-        output_file = os.path.join(first_output_dir, os.path.split(image).replace('space-T1w_desc-preproc_bold.nii.gz', 'space-T1w_desc-preproc_bold_denoised.nii.gz'))
-        os.system('cp %s %s' % (confound_file, final_output_dir))   
+        output_file = os.path.join(first_output_dir, os.path.split(image)[1].replace('space-T1w_desc-preproc_bold.nii.gz', 'space-T1w_desc-preproc_bold_denoised.nii.gz'))
+        os.system('cp %s %s' % (confound_file, first_output_for_tsv))   
         
         # Run ciftify and map to cifti FSLR
-        denoiser_command = 'export PATH="/anaconda3/bin:$PATH";FSLDIR=/fsl;. ${FSLDIR}/etc/fslconf/fsl.sh;PATH=${FSLDIR}/bin:${PATH};export FSLDIR PATH;fsl_regfilt -i %s -f %s -d %s -o %s' % (image, noise_ics, melodix_mix, output_file)
+        denoiser_command = 'FSLDIR=/usr/lib/fsl/5.0;. /etc/fsl/5.0/fsl.sh;PATH=${FSLDIR}:${PATH};export FSLDIR PATH;/usr/lib/fsl/5.0/fsl_regfilt -i %s -f %s -d %s -o %s -v' % (image, noise_ics, melodix_mix, output_file)     
         os.system(denoiser_command)
         
 ################## Zip the surfaces and output ##################################
 os.system('cd %s; zip -r -q %s *' % (first_output_dir, os.path.join(final_output_dir, 'denoised_' + archive_save_name)))
+os.system('cd %s; zip -r -q %s *' % (first_output_for_tsv, os.path.join(final_output_dir, 'confounds_' + archive_save_name)))
+

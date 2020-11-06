@@ -172,7 +172,7 @@ class Version(object):
         return True
 
 
-version = Version('3.0.18')
+version = Version('3.0.19')
 
 
 def memoize(f):
@@ -779,6 +779,10 @@ class Host(object):
             # We have a modern python (>2.4)
             (vendor, version, _) = platform.linux_distribution(
                                                 full_distribution_name=0)
+            # check if vendor still empty from above call (useful for AWS linux 2 or other rare OSes)
+            if not vendor:
+                (vendor, version, _) = platform.linux_distribution(supported_dists=['system'])
+
         else:
             (vendor, version, _) = platform.dist()
         vendor = vendor.lower()
@@ -1402,6 +1406,9 @@ def get_releases(server_url):
         if str(t_version) in os_definition[alias_t]:
             os_parent = os_definition[alias_t][
                             str(t_version)]['parent']
+            t_version = os_definition[alias_t][
+                            str(t_version)]['version']
+
             os_definition = manifest[computer.o_s][os_parent]
 
     if computer.arch not in os_definition.keys():
@@ -1926,6 +1933,7 @@ endif'''
         env_lines = '''
 %% FSL Setup
 setenv( 'FSLDIR', '%s' );
+setenv('FSLOUTPUTTYPE', 'NIFTI_GZ');
 fsldir = getenv('FSLDIR');
 fsldirmpath = sprintf('%%s/etc/matlab',fsldir);
 path(path, fsldirmpath);
@@ -2007,7 +2015,7 @@ def configure_matlab(fsldir, m_startup='', c_file=True):
     (mlines, match, replace) = shell_config('matlab', fsldir)
     if m_startup == '':
         m_startup = os.path.join(
-            os.path.expanduser('~'), 'matlab', 'startup.m')
+            os.path.expanduser('~'), 'Documents', 'MATLAB', 'startup.m')
     if os.path.exists(m_startup):
         # Check if already configured
         MsgUser.debug("Looking for %s in %s" % (match, m_startup))
@@ -2035,10 +2043,10 @@ def configure_matlab(fsldir, m_startup='', c_file=True):
             create_file(m_startup, mlines, False)
         except (OSError, CreateFileError), e:
             MsgUser.debug(
-                    'Unable to create ~/matlab folder or startup.m file,'
+                    'Unable to create ~/Documents/MATLAB/ folder or startup.m file,'
                     ' cannot configure (%).' % (str(e)))
             raise ConfigureMatlabError(
-                    "Unable to create your ~/matlab folder or startup.m, "
+                    "Unable to create your ~/Documents/MATLAB/ folder or startup.m, "
                     "so cannot configure MATLAB for FSL.")
     else:
         MsgUser.debug('MATLAB may not be installed, doing nothing.')

@@ -1,6 +1,6 @@
 {
 	"name": "denoise-icaaroma",
-	"label": "denoise-icaaroma: Perform ICA denoising on native space fmriprep data.",
+	"label": "denoise-icaaroma: Perform ICA denoising on native space fmriprep data",
 	"description": "This gear non-aggressively denoises fmriprep data output in T1w space using the MELODIC mix and noise components in the fmriprep archive. Requires T1w outputs to be included in the fmriprep output archive. This gear also outputs confound_regressor tsv files along with the denoised images.",
 	"version": "0.1.0",
 	"inputs": {
@@ -15,8 +15,7 @@
 			}
 		}
 	},
-	"config": {
-	},
+	"config": {},
 	"author": "Ozenc Taskin",
 	"maintainer": "Ozenc Taskin",
 	"license": "Other",
@@ -28,7 +27,7 @@
 		},
 		"gear-builder": {
 			"category": "analysis",
-			"image": "gkaguirrelab/denoiseicaaroma:0.1.0"
+			"image": "gkaguirrelab/denoise-icaaroma:latest"
 		}
 	}
 }

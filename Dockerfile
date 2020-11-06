@@ -8,7 +8,7 @@ MAINTAINER Ozzy(ozenctaskin@hotmail.com)
 ENV FLYWHEEL /flywheel/v0/
 RUN mkdir -p ${FLYWHEEL}
 COPY manifest.json run ${FLYWHEEL}
-COPY locate_file.py map_fs2gifti.py map_vol2fs.py ${FLYWHEEL}
+COPY locate_file.py ${FLYWHEEL}/locate_file.py
 COPY fslinstaller.py /fslinstaller.py
 RUN chmod +x /flywheel/v0/*
 
@@ -16,21 +16,12 @@ RUN chmod +x /flywheel/v0/*
 RUN apt-get update \
     && apt-get install -y \
     software-properties-common
-RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get update
 RUN apt-get install -y \
     wget \
     zip \
-    unzip
-
-# Install Anaconda
-RUN wget https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
-RUN bash Anaconda3-2020.02-Linux-x86_64.sh -b -p /anaconda3
-ENV PATH=$PATH:/anaconda3/bin
-
-# Install python2 for fslinstallation and install the newest verison of fsl
-RUN apt-get install python -y
-RUN python2 /fslinstaller.py -d /fsl 
+    unzip\
+    fsl
 
 # Set the entrypoint  
 ENTRYPOINT /flywheel/v0/run
